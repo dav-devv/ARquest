@@ -24,15 +24,15 @@ async function request(route,body) {
   return data;
 }
 async function onlineDevices(){return (await request('/api/native/status')).devices.filter(d=>d.online);}
-async function readDevice(id){return (await onlineDevices()).find(d=>d.id===id)||null;}
+async function readDevice(id){return (await request('/api/native/status')).devices.find(d=>d.id===id)||null;}
 async function waitFor(id,predicate,timeoutMs,description) {
   const start=Date.now();
-  while(Date.now()-start<timeoutMs){const device=await readDevice(id);if(device&&predicate(device))return device;await delay(400);}
+  while(Date.now()-start<timeoutMs){const device=await readDevice(id);if(device?.online&&predicate(device))return device;await delay(400);}
   throw new Error(`Tempo esgotado aguardando: ${description}.`);
 }
 async function recordFor(id,seconds,label,{markerOnly=false}={}) {
-  const end=Date.now()+seconds*1000,start=Date.now(),collected=[];let lastSample=0;
-  while(Date.now()<end){const device=await readDevice(id);if(!device)throw new Error('Celular desconectou durante a medição.');const s=device.state;
+  const end=Date.now()+seconds*1000,start=Date.now(),collected=[];let lastSample=0,offlineSince=0;
+  while(Date.now()<end){const device=await readDevice(id);if(!device||!device.online){offlineSince ||= Date.now();if(Date.now()-offlineSince>5000)throw new Error('Celular permaneceu desconectado por mais de 5 segundos.');await delay(200);continue;}offlineSince=0;const s=device.state;
     if(Date.now()-lastSample>=900){const sample={elapsedSeconds:Number(((Date.now()-start)/1000).toFixed(1)),fps:s.fps,tracking:s.tracking,trackingFailure:s.trackingFailure,anchors:s.panels,trackedAnchors:s.trackedAnchors,markerVisible:s.markerVisible};
       if(s.markerVisible)sample.pose=parseMarkerPose(s.measurements);
       if(!markerOnly||sample.markerVisible){collected.push(sample);const {pose,...shareable}=sample;report.samples.push({phase:label,...shareable});}
