@@ -13,7 +13,7 @@ Certificado e registros ficam em `%LOCALAPPDATA%/MRCompanion`. O driver de monit
 
 Compile com `powershell -File apps/android/build.ps1`. O script utiliza o JDK do Android Studio e o SDK instalado no perfil do usuário; os parâmetros `-Java` e `-Sdk` permitem outros caminhos. Não depende de Gradle: compila Java, gera DEX e empacota e assina com as ferramentas oficiais do SDK.
 
-O resultado atual é `output/packages/android/MRCompanion-native-debug.apk` (0.5.0), assinado com a mesma chave de desenvolvimento local em `%LOCALAPPDATA%/MRCompanion/build-keys`. Atualiza as versões anteriores sem desinstalar. O APK antigo `MRCompanion-debug.apk` era um lançador do Chrome e está obsoleto. Não é uma versão para publicar na Play Store.
+O resultado atual é `output/packages/android/MRCompanion-native-debug.apk` (0.6.0), assinado com a mesma chave de desenvolvimento local em `%LOCALAPPDATA%/MRCompanion/build-keys`. Atualiza as versões anteriores sem desinstalar. O APK antigo `MRCompanion-debug.apk` era um lançador do Chrome e está obsoleto. Não é uma versão para publicar na Play Store.
 
 Abra o aplicativo e toque em **Abrir espaço AR**. Autorize a câmera e a instalação/atualização do Google Play Services para AR, se solicitada. Mova o celular devagar; quando a mira central encontrar uma superfície, toque em **Fixar painel**. Os controles **Menor**, **Maior** e **Remover último** atuam no último painel. Até 24 painéis locais podem existir durante a sessão; as âncoras não são salvas depois de sair.
 

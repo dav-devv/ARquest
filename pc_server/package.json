@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js ../tools/device-test/*.test.cjs ../web_mobile_test/*.test.cjs"
   },
   "dependencies": {
     "express": "^4.19.2",

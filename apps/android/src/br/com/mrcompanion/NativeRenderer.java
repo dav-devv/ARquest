@@ -22,7 +22,7 @@ public final class NativeRenderer implements GLSurfaceView.Renderer {
     final FloatBuffer quad=buffer(-1,-1,1,-1,-1,1,1,1),uv=buffer(0,1,1,1,0,0,1,0),cameraUv=buffer(0,0,0,0,0,0,0,0);
     final float[] projection=new float[16],view=new float[16],model=new float[16],pv=new float[16],mvp=new float[16],identity=new float[16];
     int cameraTexture,panelTexture,cameraProgram,panelProgram,width=1,height=1;
-    long lastMessage,eventUntil;String event="";boolean failed;
+    long lastMessage,eventUntil,fpsWindowStart;int fpsWindowFrames;volatile int fps;volatile boolean tracking;volatile String trackingFailure="UNKNOWN";String event="";boolean failed;
     NativeRenderer(NativeArActivity a){activity=a;reference.detector.side=a.getPreferences(0).getFloat("markerSide",.14f);Matrix.setIdentityM(identity,0);}
     static FloatBuffer buffer(float... values){FloatBuffer b=ByteBuffer.allocateDirect(values.length*4).order(ByteOrder.nativeOrder()).asFloatBuffer();b.put(values).position(0);return b;}
     static int shader(int type,String code){int s=GLES20.glCreateShader(type);GLES20.glShaderSource(s,code);GLES20.glCompileShader(s);int[] ok=new int[1];GLES20.glGetShaderiv(s,GLES20.GL_COMPILE_STATUS,ok,0);if(ok[0]==0)throw new IllegalStateException(GLES20.glGetShaderInfoLog(s));return s;}
@@ -47,6 +47,7 @@ public final class NativeRenderer implements GLSurfaceView.Renderer {
             s.setDisplayGeometry(activity.getWindowManager().getDefaultDisplay().getRotation(),width,height);s.setCameraTextureName(cameraTexture);Frame frame=s.update();com.google.ar.core.Camera camera=frame.getCamera();
             if(frame.getTimestamp()!=0){quad.position(0);cameraUv.position(0);frame.transformCoordinates2d(Coordinates2d.OPENGL_NORMALIZED_DEVICE_COORDINATES,quad,Coordinates2d.TEXTURE_NORMALIZED,cameraUv);GLES20.glDisable(GLES20.GL_DEPTH_TEST);GLES20.glDepthMask(false);draw(cameraProgram,cameraTexture,GLES11Ext.GL_TEXTURE_EXTERNAL_OES,cameraUv,identity);GLES20.glDepthMask(true);}
             boolean tracking=camera.getTrackingState()==TrackingState.TRACKING;
+            this.tracking=tracking;trackingFailure=camera.getTrackingFailureReason().name();long frameTime=android.os.SystemClock.uptimeMillis();if(fpsWindowStart==0)fpsWindowStart=frameTime;fpsWindowFrames++;long fpsElapsed=frameTime-fpsWindowStart;if(fpsElapsed>=1000){fps=(int)Math.round(fpsWindowFrames*1000.0/fpsElapsed);fpsWindowFrames=0;fpsWindowStart=frameTime;}
             String markerText=reference.update(frame,s);
             HitResult hit=null;if(tracking)for(HitResult h:frame.hitTest(width*.5f,height*.5f)){if(h.getTrackable() instanceof Plane&&((Plane)h.getTrackable()).isPoseInPolygon(h.getHitPose())){hit=h;break;}}
             if(placeRequested.getAndSet(false)){Pose markerPose=reference.panelPose();if(!tracking||(markerPose==null&&hit==null))notice("Mire uma superfície ou defina a referência impressa.");else if(panels.size()>=24)notice("Limite desta versão: 24 painéis. Remova um para continuar.");else{Pose pose=markerPose!=null?markerPose:new Pose(hit.getHitPose().getTranslation(),camera.getDisplayOrientedPose().getRotationQuaternion());panels.add(new Panel(s.createAnchor(pose)));notice(markerPose!=null?"Painel fixado 10 cm à frente do marcador.":"Painel fixado na superfície.");}}

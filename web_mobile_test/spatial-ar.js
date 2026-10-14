@@ -627,6 +627,15 @@
       $('markerStatus').textContent=state.markerStatus||'Referência universal ID 100 para qualquer janela';
       if(!state.active)$('capability').textContent=state.tracking;
     }});
+    root.__ARQUEST_TEST_DIAGNOSTICS=()=>({
+      active:!!workspace.session,visible:workspace.session?.visibilityState==='visible',
+      tracking:(workspace.state.tracking||'').slice(0,120),fps:workspace.state.fps||0,videoFps:workspace.state.videoFps||0,
+      anchors:workspace.state.anchors||0,tracked:workspace.state.tracked||0,canPlace:!!workspace.state.canPlace,
+      cameraReady:!!workspace.state.cameraReady,sbs:!!workspace.state.sbs,quality:workspace.state.quality||workspace.quality.level.name,
+      markerScanning:!!workspace.state.markerScanning,markerStatus:(workspace.state.markerStatus||'').slice(0,120),
+      handStatus:(workspace.state.handStatus||'').slice(0,120),handMs:workspace.state.handMs||0,
+      learningSamples:workspace.state.learningSamples||0
+    });
     const verify=async()=>{
       $('retryAR').disabled=true;$('startAR').disabled=true;$('supportLabel').textContent='Verificando aparelho';
       const support=await checkSupport(navigator.xr,window.isSecureContext);

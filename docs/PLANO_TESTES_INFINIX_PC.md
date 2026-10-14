@@ -2,6 +2,22 @@
 
 Este roteiro estabelece uma referência prática para encontrar problemas de reconhecimento, deriva das janelas, fluidez e conexão. Faça os testes na ordem indicada e altere uma configuração por vez. Os resultados são uma linha de base; não representam uma certificação do aparelho.
 
+## Execução assistida pelo verificador
+
+Para o APK nativo, conecte o telefone ao PC pelo botão **Editar Android** (Wi-Fi, sem cabo USB), abra o AR e rode na raiz do projeto:
+
+```powershell
+node tools/device-test/run-native-check.cjs --server http://localhost:3000 --duration 30
+```
+
+O programa amostra FPS e tracking, espera a detecção do ID 100, compara a pose do celular antes/depois de um deslocamento guiado e guarda um JSON sem ID do aparelho ou credenciais em `output/qa/device-tests/`. Você ainda move o telefone quando solicitado: isso testa câmera e âncoras de verdade, sem fingir que o ambiente físico é automatizado.
+
+Opcionalmente, passe `--exercise-controls` para ele criar e remover um painel de teste no fim. Garanta espaço livre na cena; o painel adicional é removido automaticamente quando o comando de limpeza funciona. Sem essa opção, o verificador não adiciona nem remove janelas.
+
+Se o servidor Windows estiver nas portas alternativas do executável, informe a porta local do painel, por exemplo `--server http://localhost:3010`.
+
+Para WebXR no Chrome, abra a página de AR com `?test=1` no final da URL (por exemplo, `/mobile/ar.html?test=1`), inicie a sessão e toque em **Coletar 60 segundos**. O painel orienta ficar parado, mover o celular e retornar; ao final, baixe o JSON no próprio telefone. O relatório guarda FPS, vídeo, contadores de âncoras e estados, sem vídeo da câmera nem coordenadas brutas. Essa coleta é separada da câmera física: a sequência de movimento continua manual.
+
 ## O que será testado
 
 Há dois fluxos diferentes. Anote qual deles está usando em cada resultado:
@@ -16,7 +32,7 @@ Não compare diretamente FPS do WebXR com a sensação visual do APK: o APK atua
 
 ## Preparação (3–5 minutos)
 
-- Anote a versão/build do APK ou a URL/versão web usada. O roteiro foi escrito para o APK nativo 0.5.0 e o código atualmente no projeto; registre uma versão diferente se for o caso.
+- Anote a versão/build do APK ou a URL/versão web usada. O verificador nativo exige APK com telemetria 0.6.0 ou posterior.
 - No Infinix Note 40 5G, registre a versão do Android, o patch de segurança, a versão do Chrome e a versão do Google Play Services para AR. Não é necessário compartilhar IMEI, número de série, link de pareamento ou token.
 - No PC, registre a versão do Windows, CPU, GPU, RAM e se o PC está conectado por Wi-Fi ou cabo. Confirme que celular e PC estão na mesma rede local; desligue VPN durante o teste de conexão, se houver.
 - Deixe o celular esfriar até a temperatura normal, desconecte o carregador durante a comparação e feche apps pesados. Mantenha o brilho, a iluminação e o local iguais entre repetições.

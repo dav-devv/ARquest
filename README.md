@@ -58,6 +58,10 @@ Há testes de geometria e marcadores, âncoras AR, interação, sincronização 
 
 Para validar o app no Infinix Note 40 5G e no PC, siga o [plano de testes físicos](docs/PLANO_TESTES_INFINIX_PC.md) e registre os resultados usando o [modelo de teste](docs/MODELO_RESULTADO_TESTE.md). O APK nativo e o WebXR têm recursos e métricas diferentes; o plano avalia cada fluxo separadamente.
 
+Para coletar métricas do APK automaticamente pelo PC, pareie o app em **Editar Android**, deixe o AR aberto e execute `node tools/device-test/run-native-check.cjs`. O verificador guia as ações, registra FPS/estado de tracking/marcador e salva um relatório local. Os deslocamentos físicos ainda são feitos manualmente.
+
+No Chrome com WebXR, abra `/mobile/ar.html?test=1`; o coletor no celular registra 60 segundos de FPS, transmissão e âncoras, guia um ciclo parado/movimento/retorno e baixa um JSON local. Os relatórios são diagnósticos práticos, não medidas de latência ponta a ponta ou precisão laboratorial.
+
 ## Como colaborar
 
 Leia [CONTRIBUTING.md](CONTRIBUTING.md) antes de abrir um pull request. Relatos de falhas podem ser enviados pela aba Issues. Não envie certificados, arquivos de build ou credenciais.
