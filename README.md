@@ -56,6 +56,8 @@ npm test --prefix pc_server
 
 Há testes de geometria e marcadores, âncoras AR, interação, sincronização PC/celular e controle de telas. Os testes automatizados não substituem validação com câmera, headset e impressão reais.
 
+Para validar o app no Infinix Note 40 5G e no PC, siga o [plano de testes físicos](docs/PLANO_TESTES_INFINIX_PC.md) e registre os resultados usando o [modelo de teste](docs/MODELO_RESULTADO_TESTE.md). O APK nativo e o WebXR têm recursos e métricas diferentes; o plano avalia cada fluxo separadamente.
+
 ## Como colaborar
 
 Leia [CONTRIBUTING.md](CONTRIBUTING.md) antes de abrir um pull request. Relatos de falhas podem ser enviados pela aba Issues. Não envie certificados, arquivos de build ou credenciais.
