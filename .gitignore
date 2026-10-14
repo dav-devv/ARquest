@@ -1,0 +1,29 @@
+# Local credentials and server state
+/pc_server/cert.json
+/pc_server/*.log
+/.env
+/.env.*
+!.env.example
+
+# Dependencies and generated builds
+/pc_server/node_modules/
+/apps/android/deps/*.aar
+/output/
+/tmp/
+**/bin/
+**/obj/
+**/Library/
+**/Temp/
+**/Logs/
+**/UserSettings/
+
+# Locally downloaded signed virtual display driver packages
+/tools/virtual-display/*.zip
+/tools/virtual-display/control-*/
+/tools/virtual-display/driver-*/
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

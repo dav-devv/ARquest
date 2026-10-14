@@ -1,0 +1,12 @@
+#startOverlay{background:#101817;padding:64px 24px 32px;text-align:left;align-items:stretch;justify-content:center;gap:0}
+#startOverlay{font-family:"Segoe UI",Arial,sans-serif}#startOverlay button{font-family:inherit}#settingsBtn{background:#192320;color:#eef2eb;border:1px solid #34453d;min-height:44px;font-family:"Segoe UI",Arial,sans-serif;cursor:pointer}#settingsBtn:focus-visible{outline:2px solid #b6e5b9;outline-offset:4px}
+#startOverlay>*{width:100%;max-width:470px;margin-left:auto;margin-right:auto}.launch-brand{color:#b6e5b9;font-size:12px;letter-spacing:.18em;margin-bottom:26px}
+#startOverlay h1{font-size:clamp(30px,6vw,42px);line-height:1.15;letter-spacing:-.04em;color:#eef2eb;background:none;-webkit-text-fill-color:initial;margin-bottom:18px}
+#startOverlay p{color:#a6b6ac;max-width:470px;font-size:15px;margin-bottom:28px}
+#mappingLink{display:block;border:1px solid #b6e5b9;border-radius:14px;background:#b6e5b9;color:#142b1b;text-decoration:none;padding:20px;font-size:17px;font-weight:650;margin-bottom:12px}
+#mappingLink>span{float:right}#mappingLink small{display:block;margin-top:9px;font-size:11px;font-weight:400}
+#startOverlay .btn-start{border:1px solid #34453d;border-radius:14px;background:#192320;color:#eef2eb;box-shadow:none;font-size:15px;padding:18px 20px;text-align:left;font-weight:500;min-height:54px}
+.mode-note{display:block;font-size:11px;color:#a6b6ac;line-height:1.5;margin-top:14px}
+#mappingLink:focus-visible,#startOverlay button:focus-visible{outline:2px solid #eef2eb;outline-offset:4px}
+@media(max-height:540px){#startOverlay{justify-content:flex-start;padding-top:32px}}
+@media(prefers-reduced-motion:reduce){#startOverlay .btn-start{transition:none}}

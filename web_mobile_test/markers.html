@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><title>MR Companion - Marcadores A4</title>
+<style>
+@page{size:A4;margin:15mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#000;margin:0;background:#eee}
+.actions{padding:20px;text-align:center}button{padding:12px;cursor:pointer}.page{width:180mm;height:267mm;margin:20px auto;background:white;padding:0;break-after:page}.page:last-child{break-after:auto}
+h1{font-size:22px;margin:0 0 8px;padding-top:6mm}h2{font-size:18px;margin:0 0 10px}p,li{font-size:13px;line-height:1.45}svg{display:block;width:140mm;height:140mm;margin:12mm auto;shape-rendering:crispEdges}
+.ruler{width:100mm;border-top:1px solid black;border-left:1px solid black;border-right:1px solid black;height:4mm;margin:8mm 0 2mm}.foot{font-size:11px;margin-top:8mm}
+@media print{body{background:white}.actions{display:none}.page{margin:0}}
+</style></head><body>
+<div class="actions"><button onclick="window.print()">Imprimir referência universal A4</button><p>Escala 100% / tamanho real. Desative cabeçalhos e rodapés. Não use “ajustar à página”.</p></div>
+<script src="/mobile/spatial-math.js"></script><script src="/mobile/marker-math.js"></script>
+<script>
+for(const [id,title] of [[100,'Referência universal — qualquer janela']]){
+ const bits=MRMarkerMath.cells(id);let rects='<rect width="7" height="7" fill="black"/>';
+ bits.forEach((row,y)=>row.forEach((bit,x)=>{if(bit)rects+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="white"/>';}));
+ const page=document.createElement('section');page.className='page';
+ page.innerHTML='<h1>MR COMPANION · Referência espacial</h1><h2>ID '+id+' / '+title+'</h2><p>ArUco original · lado externo do quadrado preto: <b>140 mm (14 cm)</b></p><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 7 7" aria-label="Marcador '+id+'">'+rects+'</svg><ol><li>Imprima em papel fosco, escala 100%. Mantenha a margem branca.</li><li>Meça o lado preto e informe a medida em “Lado preto (mm)” no AR.</li><li>Prenda a folha plana em um local fixo e bem iluminado.</li><li>Escolha o tipo da janela no aplicativo e toque em “Fixar no marcador”. Mostre apenas este marcador inteiro e mantenha o celular parado até confirmar.</li></ol><div class="ruler"></div><p>Conferência: esta linha deve medir exatamente 100 mm.</p><p class="foot">A leitura posiciona uma âncora local à sessão. Para reposicionar, repita a leitura. Não dobre, plastifique ou mova a folha durante o uso. Padrão único para todas as janelas.</p>';
+ document.body.appendChild(page);
+}
+</script></body></html>

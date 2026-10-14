@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "com.google.xr.cardboard": "https://github.com/googlevr/cardboard-xr-plugin.git",
+    "com.unity.xr.management": "4.4.1",
+    "com.unity.textmeshpro": "3.0.6",
+    "com.unity.modules.androidjni": "1.0.0",
+    "com.unity.modules.ui": "1.0.0",
+    "com.unity.modules.uielements": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.unitywebrequest": "1.0.0"
+  }
+}

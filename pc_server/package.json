@@ -1,0 +1,16 @@
+{
+  "name": "mr-passthrough-pc-server",
+  "version": "1.0.0",
+  "description": "PC Companion Server for Mobile VR Passthrough & Hand Tracking",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "selfsigned": "^5.5.0",
+    "systeminformation": "^5.23.5",
+    "ws": "^8.22.0"
+  }
+}

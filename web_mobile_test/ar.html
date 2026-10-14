@@ -1,0 +1,63 @@
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101817">
+<title>MR Companion — Seu espaço</title><link rel="stylesheet" href="/mobile/ar.css"></head><body>
+<canvas id="xrCanvas" aria-hidden="true"></canvas><main id="overlay">
+<section id="intro" aria-labelledby="welcomeTitle">
+ <header class="app-header"><a class="brand" href="/mobile"><span class="brand-mark" aria-hidden="true">mr</span><span>MR <b>Companion</b></span></a><span class="version">ESPAÇO AR <i></i></span></header>
+ <div class="welcome-grid"><div class="welcome-copy">
+  <p class="eyebrow">SEU AMBIENTE. SEU ESPAÇO.</p><h1 id="welcomeTitle">Uma nova dimensão<br>para suas <em>janelas.</em></h1>
+  <p class="lead">Leve a biblioteca e a tela do computador para o ambiente ao seu redor. Escolha um lugar e fixe sua janela.</p>
+  <div class="launch-panel"><div class="status-label"><i class="status-dot" aria-hidden="true"></i><span id="supportLabel">Verificando aparelho</span></div><p id="capability" role="status">Verificando realidade aumentada…</p>
+   <div class="launch-actions"><button id="startAR" disabled>Iniciar meu espaço <span aria-hidden="true">↗</span></button><button id="retryAR" class="text-button">Verificar novamente</button></div>
+   <p id="compatHelp" class="help" hidden>Abra no Chrome do celular por HTTPS. Confira o <a href="https://play.google.com/store/apps/details?id=com.google.ar.core" target="_blank" rel="noopener">Google Play Services para RA</a> e tente novamente.</p>
+  </div>
+  <div class="connection"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 21h8m-4-5v5"/></svg><div><strong id="introConnection">Aguardando conexão com o PC</strong><p>Para ver o monitor, ative “Transmitir Tela” no painel do computador.</p></div></div>
+ </div>
+ <div class="space-preview" aria-label="Ilustração de uma janela posicionada no ambiente"><div class="preview-top"><span>UM ESPAÇO, NOVAS POSSIBILIDADES</span><span>01 / AR</span></div>
+  <svg class="room" viewBox="0 0 520 430" fill="none" aria-hidden="true">
+   <g stroke="#344640"><path d="M30 310 266 408 500 295M30 310V96L252 28 500 107V295M252 28V214L30 310M252 214 500 295"/><path d="m83 332 230-97m-168 123 232-102m-161 131 222-110M79 289l237 98M130 267l244 95M184 244l250 94"/></g>
+   <path d="m103 286 134 48 168-62-137-44z" fill="#1c2b26" stroke="#526b60"/><path d="M103 286v49m134-1v52m168-114v54" stroke="#526b60"/>
+   <g transform="translate(105 90)"><rect width="306" height="180" rx="12" fill="#18231f" stroke="#83998d"/><path d="M0 34h306" stroke="#40574b"/><circle cx="17" cy="17" r="3" fill="#b6e5b9"/><text x="29" y="21" fill="#d1ded5" font-family="Arial,sans-serif" font-size="10">Meu espaço</text><rect x="17" y="51" width="167" height="109" rx="5" fill="#2d4437"/><path d="m62 131 28-40 19 26 16-17 28 31" stroke="#b6e5b9" stroke-width="2"/><circle cx="139" cy="77" r="9" stroke="#b6e5b9"/><rect x="199" y="51" width="88" height="48" rx="5" fill="#364234"/><rect x="199" y="111" width="88" height="49" rx="5" fill="#253830"/><path d="M214 67h55m-55 10h36m-36 50h55m-55 10h27" stroke="#8ba692" stroke-width="3"/></g>
+   <path d="M258 273v42" stroke="#b6e5b9" stroke-dasharray="3 4"/><ellipse cx="258" cy="320" rx="15" ry="6" stroke="#b6e5b9"/><circle cx="258" cy="320" r="2" fill="#b6e5b9"/>
+  </svg><div class="preview-bottom"><span class="coordinate">CÂMERA + ÂNCORAS</span><p>O ambiente vira seu ponto de referência.</p><small>Ilustração do modo AR</small></div>
+ </div></div>
+ <ol class="steps" aria-label="Como começar"><li><span>01</span><div><h2>Reconheça o ambiente</h2><p>Comece com o celular na mão. Mova devagar sobre uma mesa ou chão.</p></div></li><li><span>02</span><div><h2>Encontre seu lugar</h2><p>Fixe no alvo verde ou use um marcador impresso como referência.</p></div></li><li><span>03</span><div><h2>Explore em duas lentes</h2><p>Se disponível, gire o celular e ative a visualização para os óculos.</p></div></li></ol>
+ <footer class="welcome-footer"><a href="/mobile/markers.html" target="_blank" rel="noopener">Imprimir marcadores A4 ↗</a><a id="backLink" href="/mobile">Modo com gestos de mão →</a></footer>
+ <details class="limitations"><summary>O que está disponível nesta versão</summary><p>As janelas ficam ancoradas durante a sessão. Duas lentes duplica a câmera monocular, com calibração visual manual; não cria profundidade estéreo. As mãos são opcionais e usam a câmera AR. Ao encerrar, posicione as janelas novamente.</p></details>
+</section>
+<section id="hud" hidden aria-label="Controles do espaço AR">
+ <div class="readout"><div class="tracking-line"><i class="status-dot" aria-hidden="true"></i><strong id="trackingStatus" role="status">Procurando superfícies…</strong></div><span id="anchorStatus">Nenhuma janela fixada</span><details class="diagnostics"><summary>Diagnóstico</summary><div><span id="connectionStatus">PC desconectado</span><span id="performanceStatus">Cena: 0 FPS · Vídeo do PC: 0 FPS</span><span id="qualityStatus">Qualidade: Nítida</span><span id="gamepadStatus">Controle: pressione um botão para conectar.</span><span id="inputStatus">Mire um ícone.</span></div></details></div>
+ <button id="endAR" class="exit-button">Encerrar AR</button>
+ <div class="toolbar"><div class="toolbar-heading"><span class="eyebrow">POSICIONAR JANELA</span><button id="removePanel" class="text-button danger" disabled>Remover janela</button></div>
+  <div class="placement-row"><label for="panelType" class="sr-only">Janela para posicionar</label><select id="panelType"><option value="library">Biblioteca</option><option value="desktop">Monitor do PC</option></select><button id="placePanel" disabled>Fixar no alvo <span aria-hidden="true">＋</span></button></div><p class="hint">Aponte para uma superfície e aguarde o alvo verde.</p>
+  <label for="windowList">Janelas criadas</label><select id="windowList" aria-label="Janela para remover"></select>
+  <label for="desktopSource">Conteúdo do monitor</label><select id="desktopSource"><option value="default">Transmissão principal</option></select>
+  <button id="assignSource" class="secondary">Usar fonte na janela selecionada</button>
+  <p class="hint">No painel do PC, transmita cada tela separadamente. Escolha o conteúdo acima e fixe um novo Monitor do PC, ou aplique à janela selecionada. Duas pinças na mesma janela mudam seu tamanho.</p>
+  <details id="markerOptions" class="marker-options"><summary>Usar marcador impresso <span class="tag">A4</span></summary><div class="marker-content"><p>Referência universal ID 100 para qualquer janela.</p><label>Tipo de janela <select id="markerWindowType"><option value="desktop">Monitor do PC</option><option value="library">Biblioteca</option></select></label><div class="marker-controls"><label for="markerSize">Lado preto (mm)<input id="markerSize" type="number" min="70" max="300" value="140" inputmode="numeric" aria-describedby="markerStatus"></label><button id="scanMarker" class="secondary" disabled>Fixar no marcador</button><button id="cancelMarker" class="text-button" hidden>Cancelar leitura</button></div><p id="markerStatus" role="status">Mostre um marcador inteiro e mantenha o celular parado.</p></div></details>
+  <details class="feature-options"><summary>Interação e desempenho</summary><div class="feature-fields">
+    <label class="check"><input id="dwellEnabled" type="checkbox" checked>Selecionar pela mira em duas lentes</label>
+    <label>Tempo da mira <select id="dwellTime"><option value="1000">1 segundo</option><option value="1400">1,4 segundo</option><option value="2000">2 segundos</option><option value="3000">3 segundos</option></select></label>
+    <p>Olhe para um ícone até completar o círculo. Afaste a mira para clicar novamente. No controle Bluetooth, use o botão 0 (A em controles padrão).</p>
+    <label class="check"><input id="autoQuality" type="checkbox" checked>Ajustar qualidade ao FPS</label>
+    <label class="check"><input id="mouseMode" type="checkbox">Controlar o mouse do PC com pinça</label>
+    <p>Associe a transmissão ao monitor no painel do PC. Use uma mão: indicador move o cursor, pinça clica; mantenha fechada para arrastar. Desative para organizar ou redimensionar as janelas AR. Use teclado físico/Bluetooth para digitar.</p>
+    <label class="check"><input id="adaptiveTracking" type="checkbox" checked>Rastreamento adaptativo nesta sessão</label>
+    <p id="learningStatus" role="status">Aprendizado aguardando rastreamento.</p>
+    <button id="resetLearning" type="button">Reiniciar aprendizado</button>
+    <label class="check"><input id="correctMarkers" type="checkbox">Corrigir desvios pelos marcadores</label><p>Primeiro fixe as janelas usando as folhas. Mantenha-as imóveis e visíveis. Desvios acima de 15 cm exigem nova leitura.</p>
+    <label class="check"><input id="handsEnabled" type="checkbox">Ativar mãos no AR (experimental)</label><p id="handStatus" role="status">Aponte o indicador; faça uma pinça para clicar. Segure a pinça no cabeçalho para mover a janela. Requer acesso à câmera AR.</p>
+  </div></details>
+  <div class="lens-row"><div><strong>Duas lentes</strong><span>Experimental</span></div><button id="toggleSBS" class="secondary" disabled>Ativar duas lentes</button></div><p id="sbsSupport" class="support-note">Aguardando acesso à câmera AR pelo Chrome.</p>
+ </div><div class="sbs-buttons"><button id="leaveSBS" class="secondary">Voltar ao AR normal</button><button id="calibrateSBS" class="secondary">Calibrar lentes</button></div>
+ <section id="opticsPanel" hidden aria-label="Calibração das lentes"><h2>Calibrar lentes</h2><p>Alinhe os centros, ajuste o tamanho e deixe a grade reta. Valores salvos neste navegador; não são uma medida física de distância entre olhos.</p>
+   <label>Separação dos centros <output id="separationValue"></output><input id="lensSeparation" type="range" min="-0.3" max="0.3" step="0.01" value="0"></label>
+   <label>Tamanho da imagem <output id="zoomValue"></output><input id="lensZoom" type="range" min="0.7" max="1.5" step="0.01" value="1"></label>
+   <label>Centro vertical <output id="verticalValue"></output><input id="lensVertical" type="range" min="-0.3" max="0.3" step="0.01" value="0"></label>
+   <label>Correção de distorção <output id="distortionValue"></output><input id="lensDistortion" type="range" min="-0.3" max="0.5" step="0.01" value="0"></label>
+   <div><button id="previewOptics" class="secondary">Ver grade completa</button><button id="resetOptics" class="secondary">Restaurar lentes</button><button id="finishOptics">Concluir calibração</button></div>
+ </section>
+</section><div id="toast" role="status" hidden></div></main>
+<video id="pcVideo" playsinline muted autoplay hidden></video>
+<script src="/mobile/interaction.js"></script><script src="/mobile/spatial-math.js"></script><script src="/mobile/ar-features.js"></script><script src="/mobile/ar-optics.js"></script><script src="/mobile/marker-math.js"></script><script src="/mobile/marker-tracker.js"></script><script src="/mobile/ar-bridge.js"></script><script src="/mobile/tracking-learning.js"></script><script src="/mobile/spatial-ar.js"></script>
+</body></html>
