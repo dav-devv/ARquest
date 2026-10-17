@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const M=require('../../web_mobile_test/spatial-math'),K=require('../../web_mobile_test/marker-math');
 const ctx={};vm.createContext(ctx);for(const file of ['cv.js','aruco.js'])vm.runInContext(fs.readFileSync(require('path').join(__dirname,'../../web_mobile_test/vendor',file),'utf8'),ctx);
 test('printed original ArUco patterns decode to the intended IDs in all four rotations',()=>{
- for(const id of [100,200]){let bits=K.cells(id);for(let rotation=0;rotation<4;rotation++){
+ for(const id of [100,101,102,103]){let bits=K.cells(id);for(let rotation=0;rotation<4;rotation++){
   const width=270,data=new Uint8ClampedArray(width*width*4).fill(255);
   for(let y=0;y<7;y++)for(let x=0;x<7;x++)if(!bits[y][x])for(let dy=0;dy<30;dy++)for(let dx=0;dx<30;dx++){const i=((y*30+30+dy)*width+x*30+30+dx)*4;data[i]=data[i+1]=data[i+2]=0;}
   const markers=new ctx.AR.Detector().detect({width,height:width,data});assert.equal(markers.length,1);assert.equal(markers[0].id,id);
@@ -18,5 +18,5 @@ test('marker pose recovers metric translation with an off-center XR projection',
 });
 test('marker stability rejects jumps, missing detections and changing IDs',()=>{
  const s=new K.StablePose(),m=M.identity();assert.equal(s.add(100,m),null);assert.equal(s.add(100,m),null);assert.equal(s.add(100,m),null);assert(s.add(100,m));
- assert.equal(s.add(200,m),null);assert.equal(s.add(200,null),null);m[12]=1;assert.equal(s.add(100,m),null);
+ assert.equal(s.add(101,m),null);assert.equal(s.add(101,null),null);m[12]=1;assert.equal(s.add(100,m),null);
 });

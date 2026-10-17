@@ -12,7 +12,7 @@ import javax.net.ssl.*;
 /** Optional LAN control. Rendering stays native and works without this connection. */
 final class RemoteControl {
     interface Reply {void done(boolean ok,String message);}
-    interface Target {void apply(String action,double value,Reply reply);}
+    interface Target {void apply(String action,double value,String panelId,Reply reply);}
     static volatile RemoteControl current;
     static volatile Target target;
     static volatile JSONObject state=new JSONObject();
@@ -34,7 +34,7 @@ final class RemoteControl {
         ByteArrayOutputStream bytes=new ByteArrayOutputStream();try(InputStream input=c.getInputStream()){byte[] buffer=new byte[4096];int n;while((n=input.read(buffer))!=-1){if(bytes.size()+n>65536)throw new IOException("Resposta inválida");bytes.write(buffer,0,n);}}
         JSONObject response=new JSONObject(bytes.toString("UTF-8"));if(current!=this)return;status="Conectado ao PC "+pairing.host;
         synchronized(acks){for(int i=0;i<batch.length();i++)acks.remove(batch.getJSONObject(i).getString("id"));}
-        JSONArray commands=response.getJSONArray("commands");for(int i=0;i<commands.length();i++){JSONObject command=commands.getJSONObject(i);String cid=command.getString("id");if(!seen.add(cid))continue;while(seen.size()>256)seen.remove(seen.iterator().next());long until=SystemClock.uptimeMillis()+Math.max(0,command.optLong("ttl")-(SystemClock.uptimeMillis()-started));String action=command.getString("action");double value=command.optDouble("value",0);
-            main.post(()->{if(current!=this)return;Target t=target;if(SystemClock.uptimeMillis()>=until){acknowledge(cid,false,"Comando expirou; não aplicado.");return;}if(t==null){acknowledge(cid,false,"Aplicativo em segundo plano; comando não aplicado.");return;}t.apply(action,value,(ok,message)->acknowledge(cid,ok,message));});}
+        JSONArray commands=response.getJSONArray("commands");for(int i=0;i<commands.length();i++){JSONObject command=commands.getJSONObject(i);String cid=command.getString("id");if(!seen.add(cid))continue;while(seen.size()>256)seen.remove(seen.iterator().next());long until=SystemClock.uptimeMillis()+Math.max(0,command.optLong("ttl")-(SystemClock.uptimeMillis()-started));String action=command.getString("action"),panelId=command.optString("panelId","");double value=command.optDouble("value",0);
+            main.post(()->{if(current!=this)return;Target t=target;if(SystemClock.uptimeMillis()>=until){acknowledge(cid,false,"Comando expirou; não aplicado.");return;}if(t==null){acknowledge(cid,false,"Aplicativo em segundo plano; comando não aplicado.");return;}t.apply(action,value,panelId,(ok,message)->acknowledge(cid,ok,message));});}
     }catch(Exception e){status=e instanceof SSLException?"Certificado não confere. Gere novo código no PC.":"PC desconectado. Confira a rede e o pareamento.";}finally{if(c!=null)c.disconnect();}}
 }

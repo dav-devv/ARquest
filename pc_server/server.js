@@ -7,6 +7,7 @@ const { WebSocketServer } = require('ws');
 const selfsigned = require('selfsigned');
 const { exec } = require('child_process');
 const { randomBytes } = require('crypto');
+const QRCode = require('qrcode');
 const { isLoopback, resolvePublicFile, validToken } = require('./security');
 const virtualDisplays = require('./virtual-displays');
 const {NativeMouse,MouseControl}=require('./mouse-control');
@@ -92,7 +93,10 @@ function handleRequest(req, res) {
     }else if(!trustedLocal(req)){reply(403,{error:'Use o painel neste PC.'});return;}
     if(url==='/api/native/pairing'&&req.method==='GET'){
       const pin=new (require('node:crypto').X509Certificate)(pems.cert).fingerprint256.replaceAll(':','').toLowerCase();
-      reply(200,{code:'mrcompanion://'+primaryIp+':'+HTTPS_PORT+'/#token='+pairingToken+'&sha256='+pin});return;
+      const code='mrcompanion://'+primaryIp+':'+HTTPS_PORT+'/#token='+pairingToken+'&sha256='+pin;
+      QRCode.toDataURL(code,{width:320,margin:3,errorCorrectionLevel:'M',color:{dark:'#08111d',light:'#ffffff'}})
+        .then(qrDataUrl=>reply(200,{qrDataUrl}))
+        .catch(()=>reply(500,{error:'Não foi possível gerar o QR de pareamento.'}));return;
     }
     if(url==='/api/native/status'&&req.method==='GET'){reply(200,{devices:nativeControl.status()});return;}
     if(req.method!=='POST'||!['/api/native/sync','/api/native/command'].includes(url)){reply(405,{error:'Método indisponível.'});return;}

@@ -24,7 +24,7 @@ Há dois fluxos diferentes. Anote qual deles está usando em cada resultado:
 
 | Fluxo | Como abrir | O que avaliar |
 |---|---|---|
-| APK Android nativo | Abra o MR Companion instalado e toque em **Abrir espaço AR**. | Rastreamento ARCore, marcador ID 100, posicionamento e recuperação da sessão. Este fluxo não recebe vídeo do PC nem oferece mãos e duas lentes. |
+| APK Android nativo | Abra o MR Companion instalado e toque em **Abrir espaço AR**. | Rastreamento ARCore, marcador ID 100, posicionamento, gestos de mãos e visualização em duas lentes. |
 | AR WebXR no Chrome | Inicie o servidor no PC e abra no celular o link HTTPS pareado; entre no modo AR. | Âncoras WebXR, FPS de cena/vídeo, transmissão do PC, mãos opcionais e reconexão. A disponibilidade varia com o Chrome e o runtime AR do aparelho. |
 | Painel do PC | Abra `http://localhost:3000`; para os controles do APK, use **Editar Android**. | Pareamento, estado do dispositivo e comandos entre o PC e o APK. |
 
@@ -32,7 +32,7 @@ Não compare diretamente FPS do WebXR com a sensação visual do APK: o APK atua
 
 ## Preparação (3–5 minutos)
 
-- Anote a versão/build do APK ou a URL/versão web usada. O verificador nativo exige APK com telemetria 0.6.0 ou posterior.
+- Anote a versão/build do APK ou a URL/versão web usada. O verificador nativo exige APK com telemetria 0.7.0 ou posterior.
 - No Infinix Note 40 5G, registre a versão do Android, o patch de segurança, a versão do Chrome e a versão do Google Play Services para AR. Não é necessário compartilhar IMEI, número de série, link de pareamento ou token.
 - No PC, registre a versão do Windows, CPU, GPU, RAM e se o PC está conectado por Wi-Fi ou cabo. Confirme que celular e PC estão na mesma rede local; desligue VPN durante o teste de conexão, se houver.
 - Deixe o celular esfriar até a temperatura normal, desconecte o carregador durante a comparação e feche apps pesados. Mantenha o brilho, a iluminação e o local iguais entre repetições.
@@ -90,7 +90,7 @@ Use esta escala para a deriva aparente: `0` imperceptível; `1` pequena, mas vis
 
 1. Com o servidor ligado, abra **Editar Android** no painel do PC e conecte o APK pelo menu **Conectar ao PC**.
 2. Confirme que o painel mostra o celular conectado e o estado `AR`/`ativo` quando o AR está em primeiro plano.
-3. Mude **Lado (mm)** pelo PC e confira no telefone; depois altere-o no telefone e confirme a atualização no painel. Use uma medida temporária válida e restaure a medida correta no final.
+3. Crie dois painéis e confirme que ambos aparecem no PC e no telefone. Selecione o primeiro no PC, redimensione e confirme no celular; selecione o segundo no APK e remova-o pelo PC. Confira que o primeiro continua existindo. Depois teste **Lado (mm)** nos dois sentidos e restaure a medida correta.
 4. Feche e reabra a tela de edição do PC. Em seguida, desconecte e conecte novamente o celular. Confirme que o dispositivo volta a aparecer e que comandos novos funcionam.
 5. Reinicie o servidor só como última etapa: o código de pareamento muda após a reinicialização e deve ser gerado novamente.
 

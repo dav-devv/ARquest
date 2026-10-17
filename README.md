@@ -6,12 +6,12 @@ O projeto também aparece como **MR Passthrough Companion** em partes da interfa
 
 ## Componentes
 
-- `apps/android`: app Android nativo, com ARCore, OpenCV e referência impressa universal ID 100.
+- `apps/android`: app Android nativo, com ARCore, OpenCV e origem espacial impressa ID 100.
 - `apps/windows` e `pc_server`: painel e servidor do PC, pareamento local, transmissão de telas e controle de monitores virtuais já instalados.
 - `web_mobile_test`: experiência web/WebXR, rastreamento de mãos, janelas ancoradas e impressão do marcador em `/mobile/markers.html`.
 - `unity_project`: protótipo Unity experimental.
 
-O mesmo marcador impresso ID 100 serve para qualquer tipo de janela. O papel deve ficar plano e imóvel; a folha A4 é impressa em escala de 100%, com quadrado preto de 140 mm.
+O marcador ID 100 define a origem do espaço; as janelas são posicionadas em planos detectados pelo ARCore e guardadas relativamente a essa origem. A folha A4 imprime o ID 100 com 100 mm e três etiquetas compactas de 70 mm para orientação de superfícies. O papel deve ficar plano e imóvel, em escala de 100%.
 
 ## Início rápido no PC
 
@@ -27,6 +27,8 @@ Abra `http://localhost:3000` no PC. Para AR no celular, use o link HTTPS de pare
 
 Para imprimir a referência, abra `/mobile/markers.html` na instância local e imprima em escala real. Confirme a medida com a régua de 100 mm na folha.
 
+O posicionamento, a distância de leitura e a quantidade recomendada de marcadores estão descritos no [guia de posicionamento dos marcadores](docs/GUIA_POSICIONAMENTO_MARCADORES.md).
+
 ## App Android nativo
 
 Instale Android SDK Platform e Build Tools, além do JDK distribuído com Android Studio. Na raiz do projeto:
@@ -35,7 +37,7 @@ Instale Android SDK Platform e Build Tools, além do JDK distribuído com Androi
 powershell -File apps/android/build.ps1
 ```
 
-O script baixa ARCore e OpenCV com checksums fixos e gera o APK em `output/packages/android/`. O app usa ARCore/Google Play Services para AR. Teste o APK em aparelho compatível antes de depender do rastreamento.
+O script baixa ARCore, OpenCV e MediaPipe com checksums fixos e gera o APK em `output/packages/android/`. A versão 0.9 salva configuração e posições de painéis em relação ao marcador ID 100 (100 mm), para relocalizar o espaço depois de reabrir. Janelas são posicionadas em superfícies detectadas, independentes dos marcadores. O app nativo agora inclui rastreamento de duas mãos com pinça e visualização em duas lentes, também controláveis pelo PC. O modo duas lentes duplica o passthrough monocular e dá paralaxe aos painéis virtuais; não produz visão estereoscópica do mundo físico. O app usa ARCore/Google Play Services para AR; confira os limites descritos em `apps/README.md`.
 
 ## Executável Windows
 

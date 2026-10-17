@@ -12,6 +12,8 @@ public class MarkerGeometryTest {
         near(MarkerGeometry.distance(new float[]{0,0,0},new float[]{3,4,12}),13);
         yes(MarkerGeometry.compatible(new float[]{0,0,1},new float[]{0,0,0,1},new float[]{.01f,0,1},new float[]{0,0,0,-1}));
         yes(!MarkerGeometry.compatible(new float[]{0,0,1},new float[]{0,0,0,1},new float[]{.05f,0,1},new float[]{0,0,0,1}));
+        float weak=MarkerGeometry.detectionConfidence(2.4,30,42),strong=MarkerGeometry.detectionConfidence(.4,100,110);yes(weak>=0&&weak<strong&&strong>.8f);
+        float[] avg=MarkerGeometry.averagePose(new float[][]{{0,0,1},{.02f,0,1}},new float[][]{{0,0,0,1},{0,0,0,-1}},new float[]{1,.5f});near(avg[0],.02/3);near(Math.abs(avg[6]),1);
         for(int id:new int[]{100,200}){byte[] b=MarkerGeometry.bits(id);yes(b.length==25);for(byte bit:b)yes(bit==0||bit==1);System.out.print(id+":");for(byte bit:b)System.out.print(bit);System.out.println();}
         System.out.println("Geometry: "+checks+" checks passed");
     }

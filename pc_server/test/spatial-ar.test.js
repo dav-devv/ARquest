@@ -95,24 +95,24 @@ test('camera loss in two lens mode blocks interaction and never draws a stale ba
   assert.deepEqual(f.draws,['clear']);
 });
 
-test('a stable marker creates a native anchor at its metric world position',async()=>{
+test('a stable origin marker creates a room-map anchor without creating a window',async()=>{
   const f=fixture();let position,disposed=false;
   const previous=global.XRRigidTransform;
   global.XRRigidTransform=class{constructor(p){this.position=p;}};
   try{
     f.workspace.markerTracker={dispose(){disposed=true;}};f.workspace.markerDeadline=1000;
-    f.workspace.markerPending={matrix:translate(.4,.8,-1),type:'library',time:100};
+    f.workspace.markerPending={matrix:translate(.4,.8,-1),id:100,size:.1,time:100};
     const anchor={anchorSpace:{},delete(){}};
     f.frame.createAnchor=(transform,space)=>{position=transform.position;assert.equal(space,f.workspace.space);return Promise.resolve(anchor);};
     f.workspace.frame(200,f.frame);await new Promise(r=>setImmediate(r));
     assert.deepEqual(position,{x:Math.fround(.4),y:Math.fround(.8),z:-1});
-    assert(disposed);assert.equal(f.workspace.panels.get('library').anchor,anchor);
+    assert(disposed);assert.equal(f.workspace.mapAnchor,anchor);assert.equal(f.workspace.mapReferenceId,100);assert.equal(f.workspace.panels.size,0);
   }finally{global.XRRigidTransform=previous;}
 });
 
 test('expired marker observations do not replace an existing anchor',()=>{
   const f=fixture();let calls=0;f.workspace.markerTracker={dispose(){}};f.workspace.markerDeadline=5000;
-  f.workspace.markerPending={matrix:M.identity(),type:'library',time:0};f.frame.createAnchor=()=>calls++;
+  f.workspace.markerPending={matrix:M.identity(),id:100,size:.1,time:0};f.frame.createAnchor=()=>calls++;
   f.workspace.frame(2000,f.frame);assert.equal(calls,0);assert.equal(f.workspace.markerPending,null);
 });
 

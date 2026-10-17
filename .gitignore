@@ -8,6 +8,7 @@
 # Dependencies and generated builds
 /pc_server/node_modules/
 /apps/android/deps/*.aar
+/apps/android/deps/*.jar
 /output/
 /tmp/
 **/bin/

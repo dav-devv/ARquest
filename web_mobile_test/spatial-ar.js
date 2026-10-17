@@ -15,6 +15,7 @@
     if(error?.name==='NotAllowedError'||error?.name==='SecurityError')return 'O Chrome não autorizou a sessão AR. Verifique HTTPS e as permissões de câmera/realidade aumentada.';
     return 'Não foi possível iniciar o mapeamento: '+(error?.message||'erro desconhecido');
   }
+  function transformFromMatrix(matrix){const m=matrix;let x,y,z,w,trace=m[0]+m[5]+m[10];if(trace>0){const s=Math.sqrt(trace+1)*2;w=.25*s;x=(m[6]-m[9])/s;y=(m[8]-m[2])/s;z=(m[1]-m[4])/s;}else if(m[0]>m[5]&&m[0]>m[10]){const s=Math.sqrt(1+m[0]-m[5]-m[10])*2;w=(m[6]-m[9])/s;x=.25*s;y=(m[4]+m[1])/s;z=(m[8]+m[2])/s;}else if(m[5]>m[10]){const s=Math.sqrt(1+m[5]-m[0]-m[10])*2;w=(m[8]-m[2])/s;x=(m[4]+m[1])/s;y=.25*s;z=(m[9]+m[6])/s;}else{const s=Math.sqrt(1+m[10]-m[0]-m[5])*2;w=(m[1]-m[4])/s;x=(m[8]+m[2])/s;y=(m[9]+m[6])/s;z=.25*s;}return new root.XRRigidTransform({x:m[12],y:m[13],z:m[14]},{x,y,z,w});}
 
   class QuadRenderer {
     constructor(canvas) {
@@ -80,7 +81,8 @@
     constructor({xr,canvas,overlay,bridge,onState,onMessage,rendererFactory}) {
       Object.assign(this,{xr,canvas,overlay,bridge,onState,onMessage});
       this.rendererFactory=rendererFactory||((canvas)=>new QuadRenderer(canvas));
-      this.session=null;this.renderer=null;this.panels=new Map();this.revisions={library:0,desktop:0};this.panelSerial=0;
+      this.session=null;this.renderer=null;this.panels=new Map();this.revisions={library:0,desktop:0};this.panelSerial=0;this.mapAnchor=null;this.mapMatrix=null;this.mapReferenceId=null;this.savedPanels=[];this.selectedPanelId='';
+      try{const saved=JSON.parse(root.localStorage?.getItem('mr-spatial-workspace-v1')||'{}');if(saved?.version===1&&Array.isArray(saved.panels))this.savedPanels=saved.panels.filter(p=>p&&['library','desktop'].includes(p.type)&&typeof p.id==='string'&&Array.isArray(p.anchorRelative)&&p.anchorRelative.length===16&&Array.isArray(p.relative)&&p.relative.length===16&&[...p.anchorRelative,...p.relative,p.width,p.height].every(Number.isFinite)).slice(0,24);this.selectedPanelId=saved?.selected||'';}catch{}
       this.pending=null;this.placing=false;this.canPlace=false;this.starting=false;this.nextTextureTime=0;
       this.state={active:false,canPlace:false,tracking:'Pronto para iniciar',anchors:0,tracked:0,fps:0,videoFps:0,sbs:false,cameraReady:false};
       this.frameCount=0;this.videoCount=0;this.metricTime=null;
@@ -172,7 +174,7 @@
         const g=this.resizeGesture;
         if(!g.panel.tracked||this.panels.get(g.panel.id||g.panel.type)!==g.panel){this.resetInput();return true;}
         const span=this.resizeSpan(pair,g.panel);
-        if(span!==null){const scale=Math.max(.15/g.width,Math.min(4/g.width,span/g.span));g.panel.width=g.width*scale;g.panel.height=g.height*scale;}
+        if(span!==null){const scale=Math.max(.15/g.width,Math.min(4/g.width,span/g.span));g.panel.width=g.width*scale;g.panel.height=g.height*scale;this.schedulePersist();}
       }
       this.stateChanged({inputStatus:'Duas pinças: afaste para aumentar; aproxime para diminuir.'});return true;
     }
@@ -219,7 +221,7 @@
           const next=new Float32Array(panel.model),offset=M.transform(next,this.drag.offset,0);
           for(let i=0;i<3;i++)next[12+i]=ray.origin[i]+ray.direction[i]*this.drag.distance-offset[i];
           const corrected=new Float32Array(panel.anchorMatrix),c=panel.correction||[0,0,0],shift=M.transform(panel.anchorMatrix,c,0);for(let i=0;i<3;i++)corrected[12+i]+=shift[i];
-          panel.relative=M.multiply(M.inverseRigid(corrected),next);panel.model=next;
+          panel.relative=M.multiply(M.inverseRigid(corrected),next);panel.model=next;this.schedulePersist();
         }
         if(!sample.closed)this.drag=null;
       }else if(this.state.sbs&&this.settings.dwell){if(this.dwell.step(target?.key,time,this.settings.dwellMs))this.activate(target,time);}
@@ -245,6 +247,9 @@
       if(!Object.keys(patch).some(key=>this.state[key]!==patch[key]))return;
       Object.assign(this.state,patch);this.onState({...this.state});
     }
+    persistPanels(){if(!this.mapMatrix)return;try{const inverse=M.inverseRigid(this.mapMatrix),panels=[...this.panels.values()].filter(p=>p.anchorMatrix).slice(0,24).map(p=>({id:p.id||p.type,type:p.type,width:p.width,height:p.height,anchorRelative:Array.from(M.multiply(inverse,p.anchorMatrix)),relative:Array.from(p.relative)}));root.localStorage?.setItem('mr-spatial-workspace-v1',JSON.stringify({version:1,referenceId:this.mapReferenceId,panels,selected:this.selectedPanelId}));}catch{}}
+    schedulePersist(){clearTimeout(this.persistTimer);this.persistTimer=setTimeout(()=>this.persistPanels(),500);}
+    restorePanels(frame){if(!this.mapMatrix||!this.savedPanels.length)return;const saved=this.savedPanels.splice(0,24);for(const item of saved){if(this.panels.has(item.id))continue;const world=M.multiply(this.mapMatrix,new Float32Array(item.anchorRelative)),transform=transformFromMatrix(world);try{Promise.resolve(frame.createAnchor(transform,this.space)).then(anchor=>{if(!this.session){anchor.delete();return;}this.panels.set(item.id,{id:item.id,type:item.type,sourceId:'default',anchor,relative:new Float32Array(item.relative),width:item.width,height:item.height,model:null,tracked:false,markerInfo:null,correction:[0,0,0]});const n=Number(String(item.id).match(/(\d+)$/)?.[1]);if(Number.isFinite(n))this.panelSerial=Math.max(this.panelSerial,n);this.stateChanged({anchors:this.panels.size});}).catch(()=>{});}catch{}}}
     async start() {
       if(this.starting||this.session)return;
       this.starting=true;
@@ -265,7 +270,7 @@
         const viewer=await session.requestReferenceSpace('viewer');
         this.hitSource=await session.requestHitTestSource({space:viewer});
         if(this.session!==session){this.hitSource?.cancel();return;}
-        this.space.addEventListener('reset',()=>{this.stopMarker();this.resetLearning();this.correctionStable.clear();for(const panel of this.panels.values())panel.correctionTarget=null;this.onMessage('O ambiente foi relocalizado. Aguarde a recuperação das âncoras.');});
+        this.space.addEventListener('reset',()=>{this.stopMarker();this.resetLearning();this.correctionStable.clear();for(const panel of this.panels.values())panel.correctionTarget=null;this.mapAnchor?.delete();this.mapAnchor=null;this.mapMatrix=null;this.onMessage('O ambiente foi relocalizado. Leia novamente o marcador de referência para recuperar as janelas salvas.');});
         this.createTextures();
         session.addEventListener('select',event=>this.select(event));
         session.addEventListener('visibilitychange',()=>{
@@ -293,7 +298,7 @@
       else try{root.screen?.orientation?.unlock?.();}catch{}
       this.onMessage(this.state.sbs?'Deite o celular. Se a sessão ficar em retrato, as lentes serão giradas automaticamente.':'Visualização AR normal.');
     }
-    scanMarker(sizeMM=140,maintenance=false,windowType='desktop') {
+    scanMarker(sizeMM=100,maintenance=false) {
       if(!this.session||!this.state.cameraReady){this.onMessage('A leitura exige acesso à câmera AR pelo Chrome.');return;}
       if(!Number.isFinite(sizeMM)||sizeMM<70||sizeMM>300){this.onMessage('Informe o lado preto medido, entre 70 e 300 mm.');return;}
       this.stopMarker();this.markerStable=new root.MRMarkerMath.StablePose();this.markerSize=sizeMM/1000;
@@ -320,16 +325,17 @@
           }
           return;
         }
-        const marker=markers.length===1?markers[0]:null;
-        const local=marker&&root.MRMarkerMath.pose(marker.corners,snapshot.width,snapshot.height,snapshot.projection,this.markerSize);
+        const origins=markers.filter(m=>m.id===100),marker=origins.length===1?origins[0]:null;
+        const local=marker&&root.MRMarkerMath.pose(marker.corners,snapshot.width,snapshot.height,snapshot.projection,marker.id===100?this.markerSize:.07);
         const world=local&&M.multiply(snapshot.world,local);
         const stable=this.markerStable.add(marker?.id,world);
-        this.stateChanged({markerStatus:marker?'ID '+marker.id+' — mantenha parado ('+this.markerStable.count+'/4)':'Mostre apenas um marcador, inteiro e próximo.'});
-        if(stable)this.markerPending={matrix:stable,type:windowType==='library'?'library':'desktop',time:snapshot.time,id:marker.id,size:this.markerSize};
+        const tags=markers.filter(m=>[101,102,103].includes(m.id)).map(m=>({101:'horizontal ↑',102:'vertical ↑',103:'teto ↓'})[m.id]);
+        this.stateChanged({markerStatus:marker?'ID 100 — mantenha parado ('+this.markerStable.count+'/4)'+(tags.length?' · etiqueta '+tags.join(', '):''):tags.length?'Etiqueta '+tags.join(', ')+' detectada. Mostre também o ID 100 para localizar o espaço.':'Mostre o ID 100 inteiro e próximo.'});
+        if(stable)this.markerPending={matrix:stable,time:snapshot.time,id:marker.id,size:marker.id===100?this.markerSize:.07};
       },message=>{this.markerFailed=true;this.stopMarker();this.onMessage(message);});
       this.stateChanged({markerScanning:!maintenance,markerStatus:maintenance?'Correção ligada. Mantenha as folhas nos mesmos locais.':'Lendo marcador por até 20 segundos…'});
     }
-    ensureCorrection(){if(!this.markerFailed&&this.settings.correctMarkers&&this.session&&this.state.cameraReady&&!this.markerTracker&&[...this.panels.values()].some(p=>p.markerInfo))this.scanMarker(140,true);}
+    ensureCorrection(){if(!this.markerFailed&&this.settings.correctMarkers&&this.session&&this.state.cameraReady&&!this.markerTracker&&[...this.panels.values()].some(p=>p.markerInfo))this.scanMarker(100,true);}
     stopMarker() {
       this.markerTracker?.dispose();this.markerTracker=null;this.markerPending=null;
       this.markerMode=null;
@@ -341,6 +347,7 @@
       if(this.pending===type)this.pending=null;
       if(this.markerMode==='correct'&&![...this.panels.values()].some(p=>p.markerInfo))this.stopMarker();
       this.stateChanged({anchors:this.panels.size});
+      this.schedulePersist();
     }
     place(frame,hit,hitPose,viewerPose,type) {
       const session=this.session,revision=++this.revisions[type];
@@ -358,9 +365,10 @@
         if(this.session!==session||revision!==this.revisions[type]){anchor.delete();return;}
         const id=type==='desktop'&&this.panels.has(type)?'desktop:'+ ++this.panelSerial:type;
         if(type!=='desktop')this.panels.get(type)?.anchor.delete();
-        this.panels.set(id,{id,type,sourceId,anchor,relative,width,height,model:null,tracked:false,markerInfo:hit.markerInfo||null,correction:[0,0,0]});
+        this.panels.set(id,{id,type,sourceId,anchor,relative,width,height,model:null,tracked:false,markerInfo:null,correction:[0,0,0]});this.selectedPanelId=id;
         this.ensureCorrection();
         this.stateChanged({anchors:this.panels.size});
+        this.schedulePersist();
         this.onMessage(type==='library'?'Biblioteca ancorada. Selecione os ícones por toque, mira ou pinça.':'Monitor ancorado. Ative Transmitir Tela no painel do PC.');
       }).catch(()=>this.onMessage('O rastreamento não conseguiu fixar a âncora. Mova o celular e tente de novo.'))
         .finally(()=>{if(this.session===session)this.placing=false;});
@@ -384,6 +392,9 @@
           return;
         }
         this.inputReady=true;
+        const mapPose=this.mapAnchor?frame.getPose(this.mapAnchor.anchorSpace,this.space):null;
+        this.mapMatrix=mapPose&&!mapPose.emulatedPosition?new Float32Array(mapPose.transform.matrix):this.mapMatrix;
+        if(this.mapMatrix)this.restorePanels(frame);
         this.motion.step(viewer.views[0]?.transform.matrix,time);
         if(time-(this.learningMetricTime||0)>1000){this.learningMetricTime=time;this.stateChanged({motionStatus:this.motion.label,learningSamples:this.handFilter.samples});}
         const dt=this.lastFrameTime?Math.min(.1,(time-this.lastFrameTime)/1000):0;this.lastFrameTime=time;
@@ -435,10 +446,9 @@
           else if(this.markerPending){
             const pending=this.markerPending;this.stopMarker();
             if(time-pending.time<1000&&typeof frame.createAnchor==='function'&&!this.placing){
-              const matrix=M.identity();matrix[12]=pending.matrix[12];matrix[13]=pending.matrix[13];matrix[14]=pending.matrix[14];
-              const transform=new root.XRRigidTransform({x:matrix[12],y:matrix[13],z:matrix[14]});
-              this.place(frame,{createAnchor:()=>frame.createAnchor(transform,this.space),markerInfo:{id:pending.id||100,size:pending.size||.14}},{transform:{matrix}},viewer,pending.type);
-              this.stateChanged({markerStatus:'Marcador reconhecido. Criando âncora na referência…'});
+              const matrix=new Float32Array(pending.matrix),transform=transformFromMatrix(matrix);
+              Promise.resolve(frame.createAnchor(transform,this.space)).then(anchor=>{if(this.session!==session){anchor.delete();return;}this.mapAnchor?.delete();this.mapAnchor=anchor;this.mapReferenceId=pending.id;this.mapMatrix=matrix;this.restorePanels(frame);this.onMessage('Referência ID '+pending.id+' localizada. As janelas são posicionadas nas superfícies detectadas, separadas dos marcadores.');}).catch(()=>this.stateChanged({markerStatus:'Não foi possível fixar o referencial do espaço.'}));
+              this.stateChanged({markerStatus:'Marcador espacial reconhecido; atualizando o mapa do ambiente…'});
             }else this.stateChanged({markerStatus:'Referência expirou ou âncora indisponível. Tente novamente.'});
           }else if(cameraTexture){
             try{
@@ -562,7 +572,7 @@
       this.stopHands();this.resetLearning();this.calibrating=false;this.quality=new F.Quality();this.handFailed=false;this.markerFailed=false;this.correctionStable.clear();this.lastFrameTime=0;
       this.session=null;this.pending=null;this.canPlace=false;this.placing=false;
       this.hitSource?.cancel();this.hitSource=null;
-      for(const panel of this.panels.values())panel.anchor.delete();this.panels.clear();
+      this.persistPanels();for(const panel of this.panels.values())panel.anchor.delete();this.panels.clear();this.mapAnchor?.delete();this.mapAnchor=null;this.mapMatrix=null;
       this.renderer?.dispose();this.renderer=null;this.space=null;
       this.desktopSources.clear();
       this.desktopContent=null;this.lastVideoSource=null;this.lastVideoKey=null;this.metricTime=null;this.frameCount=this.videoCount=0;
@@ -606,7 +616,7 @@
       $('intro').hidden=state.active;$('hud').hidden=!state.active;
       $('placePanel').disabled=!state.canPlace;
       const list=$('windowList'),selected=list.value,signature=[...workspace.panels.keys()].join('|');
-      if(list.dataset.signature!==signature){list.dataset.signature=signature;list.replaceChildren(...[...workspace.panels.values()].map((p,i)=>{const o=document.createElement('option');o.value=p.id||p.type;o.textContent=p.type==='desktop'?'Monitor '+(i+1):'Biblioteca';return o;}));if(workspace.panels.has(selected))list.value=selected;}
+      if(list.dataset.signature!==signature){list.dataset.signature=signature;list.replaceChildren(...[...workspace.panels.values()].map((p,i)=>{const o=document.createElement('option');o.value=p.id||p.type;o.textContent=p.type==='desktop'?'Monitor '+(i+1):'Biblioteca';return o;}));if(workspace.panels.has(workspace.selectedPanelId))list.value=workspace.selectedPanelId;else if(workspace.panels.has(selected))list.value=selected;}
       $('removePanel').disabled=!workspace.panels.has(list.value);
       $('assignSource').disabled=workspace.panels.get(list.value)?.type!=='desktop';
       if($('trackingStatus').textContent!==state.tracking)$('trackingStatus').textContent=state.tracking;
@@ -657,13 +667,13 @@
     bridge.onSourcesChanged=syncSources;syncSources();
     $('desktopSource').onchange=()=>{workspace.selectedDesktopSource=$('desktopSource').value;};
     $('mouseMode').onchange=()=>{workspace.resetInput();workspace.mouseMode=$('mouseMode').checked;message(workspace.mouseMode?'Controle do PC: indicador move o cursor; pinça clica e segura.':'Organizar janelas: pinça no cabeçalho move; duas pinças redimensionam.');};
-    $('assignSource').onclick=()=>{const panel=workspace.panels.get($('windowList').value);if(panel?.type==='desktop'){panel.sourceId=$('desktopSource').value;message('Conteúdo do monitor alterado.');}};
-    $('windowList').onchange=()=>{$('removePanel').disabled=!workspace.panels.has($('windowList').value);$('assignSource').disabled=workspace.panels.get($('windowList').value)?.type!=='desktop';};
+    $('assignSource').onclick=()=>{const panel=workspace.panels.get($('windowList').value);if(panel?.type==='desktop'){panel.sourceId=$('desktopSource').value;workspace.schedulePersist();message('Conteúdo do monitor alterado.');}};
+    $('windowList').onchange=()=>{workspace.selectedPanelId=$('windowList').value;workspace.schedulePersist();$('removePanel').disabled=!workspace.panels.has($('windowList').value);$('assignSource').disabled=workspace.panels.get($('windowList').value)?.type!=='desktop';};
     $('removePanel').onclick=()=>{workspace.remove($('windowList').value);message('Janela removida. Use Fixar no alvo para adicioná-la novamente.');};
     $('endAR').onclick=()=>workspace.end().catch(error=>message(error.message));
     $('toggleSBS').onclick=()=>workspace.toggleSBS();
     $('leaveSBS').onclick=()=>workspace.toggleSBS();
-    $('scanMarker').onclick=()=>workspace.scanMarker(Number($('markerSize').value),false,$('markerWindowType').value);
+    $('scanMarker').onclick=()=>workspace.scanMarker(Number($('markerSize').value));
     $('cancelMarker').onclick=()=>{workspace.stopMarker();workspace.stateChanged({markerStatus:'Leitura cancelada.'});};
     $('resetLearning').onclick=()=>{workspace.resetLearning();workspace.stateChanged({learningSamples:0,motionStatus:'Aprendizado reiniciado'});};
     const checkboxes={adaptiveTracking:'adaptiveTracking',dwellEnabled:'dwell',autoQuality:'autoQuality',correctMarkers:'correctMarkers',handsEnabled:'hands'};

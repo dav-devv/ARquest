@@ -15,4 +15,17 @@ public final class MarkerGeometry {
         double n=Math.sqrt(x*x+y*y+z*z+w*w);return new float[]{(float)(x/n),(float)(y/n),(float)(z/n),(float)(w/n)};
     }
     public static boolean compatible(float[] a,float[] aq,float[] b,float[] bq){double dot=0;for(int i=0;i<4;i++)dot+=aq[i]*bq[i];return distance(a,b)<.03&&Math.abs(dot)>.995;}
+    /** Confidence favors low reprojection error and a large, evenly resolved marker. */
+    public static float detectionConfidence(double reprojectionError,float minEdgePixels,float maxEdgePixels){
+        if(!Double.isFinite(reprojectionError)||!Float.isFinite(minEdgePixels)||!Float.isFinite(maxEdgePixels)||minEdgePixels<=0||maxEdgePixels<minEdgePixels)return 0;
+        double errorScore=Math.max(0,1-reprojectionError/2.5),sizeScore=Math.min(1,minEdgePixels/90.0),shapeScore=Math.max(0,1-(maxEdgePixels-minEdgePixels)/Math.max(1,maxEdgePixels));
+        return (float)Math.max(0,Math.min(1,.5*errorScore+.35*sizeScore+.15*shapeScore));
+    }
+    /** Weighted pose average with quaternion hemisphere correction. */
+    public static float[] averagePose(float[][] translations,float[][] rotations,float[] weights){
+        if(translations==null||rotations==null||weights==null||translations.length==0||translations.length!=rotations.length||weights.length!=translations.length)throw new IllegalArgumentException("Medições incompatíveis.");
+        double total=0;float[] t=new float[3],q=new float[4],reference=rotations[0];
+        for(int n=0;n<weights.length;n++){double w=Math.max(.01,Math.min(1,weights[n]));total+=w;for(int i=0;i<3;i++)t[i]+=translations[n][i]*w;double dot=0;for(int i=0;i<4;i++)dot+=reference[i]*rotations[n][i];double sign=dot<0?-1:1;for(int i=0;i<4;i++)q[i]+=rotations[n][i]*(float)(w*sign);}
+        for(int i=0;i<3;i++)t[i]/=(float)total;double norm=Math.sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3]);if(norm<1e-8)throw new IllegalArgumentException("Rotações inválidas.");for(int i=0;i<4;i++)q[i]/=(float)norm;return new float[]{t[0],t[1],t[2],q[0],q[1],q[2],q[3]};
+    }
 }

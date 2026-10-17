@@ -20,3 +20,10 @@ jobs:
           cache-dependency-path: pc_server/package-lock.json
       - run: npm ci --prefix pc_server
       - run: npm test --prefix pc_server
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Android tracking core regression tests
+        shell: pwsh
+        run: ./apps/android/test-core.ps1

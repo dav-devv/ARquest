@@ -18,6 +18,12 @@ async function main() {
   assert.equal(pairing.status,200);
   const mobile=new URL(JSON.parse(pairing.body).mobileUrl);
   const token=new URLSearchParams(mobile.hash.slice(1)).get('token');
+  const nativePairing=await get('https://localhost:3443/api/native/pairing');
+  assert.equal(nativePairing.status,200);
+  const nativeQr=JSON.parse(nativePairing.body);
+  assert.match(nativeQr.qrDataUrl,/^data:image\/png;base64,[A-Za-z0-9+/]+=*$/);
+  assert.equal(Object.hasOwn(nativeQr,'code'),false);
+  assert.equal((await get('https://localhost:3443/api/native/pairing',{Origin:'https://untrusted.invalid'})).status,403);
   assert.equal((await get('http://localhost:3000/api/pairing',{Origin:'https://untrusted.invalid'})).status,403);
   for(const path of ['/mobile/../pc_server/server.js','/mobile/%2e%2e/pc_server/server.js','/../pc_server/server.js']) {
     assert.equal((await get('http://localhost:3000',{},path)).status,403);
